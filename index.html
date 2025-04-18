@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>📚 Daftar Buku</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #f9f9f9, #e9f6fb);
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #0077b6;
+      font-size: 32px;
+      margin-bottom: 25px;
+    }
+
+    .form-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .form-group input {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .form-group button {
+      background: linear-gradient(135deg, #00b4d8, #0077b6);
+      color: white;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .form-group button:hover {
+      background: linear-gradient(135deg, #0096c7, #005f87);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 25px;
+    }
+
+    th, td {
+      padding: 14px 12px;
+      border-bottom: 1px solid #e0e0e0;
+      text-align: left;
+    }
+
+    th {
+      background-color: #00b4d8;
+      color: white;
+      text-transform: uppercase;
+      font-size: 13px;
+    }
+
+    tr:hover {
+      background-color: #f1fbff;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 25px;
+    }
+
+    .export-btn {
+      background-color: #023e8a;
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .export-btn:hover {
+      background-color: #001f52;
+    }
+
+    .delete-btn,
+    .edit-btn,
+    .save-btn {
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: white;
+      margin-right: 5px;
+    }
+
+    .delete-btn {
+      background-color: #ff6b6b;
+    }
+
+    .delete-btn:hover {
+      background-color: #e63946;
+    }
+
+    .edit-btn {
+      background-color: #00b4d8;
+    }
+
+    .edit-btn:hover {
+      background-color: #0096c7;
+    }
+
+    .save-btn {
+      background-color: #2ecc71;
+    }
+
+    .save-btn:hover {
+      background-color: #27ae60;
+    }
+
+    @media (max-width: 600px) {
+      .form-group {
+        flex-direction: column;
+      }
+
+      .actions {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-end;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1><i class="fas fa-book-open-reader"></i> Daftar Buku</h1>
+
+    <div class="form-group">
+      <input type="text" id="title" placeholder="Judul Buku">
+      <input type="text" id="author" placeholder="Penulis">
+      <input type="text" id="isbn" placeholder="ISBN">
+      <button onclick="addBook()"><i class="fas fa-plus"></i> Tambah</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th><i class="fas fa-book"></i> Judul</th>
+          <th><i class="fas fa-user-pen"></i> Penulis</th>
+          <th><i class="fas fa-barcode"></i> ISBN</th>
+          <th><i class="fas fa-gear"></i> Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="book-list">
+        <!-- Data buku akan muncul di sini -->
+      </tbody>
+    </table>
+
+    <div class="actions">
+      <button class="export-btn" id="export-btn"><i class="fas fa-file-pdf"></i> Export PDF</button>
+    </div>
+  </div>
+
+  <script>
+    function addBook() {
+      const title = document.getElementById('title').value.trim();
+      const author = document.getElementById('author').value.trim();
+      const isbn = document.getElementById('isbn').value.trim();
+
+      if (!title || !author || !isbn) {
+        alert("Silakan isi semua kolom.");
+        return;
+      }
+
+      const table = document.getElementById('book-list');
+      const row = table.insertRow();
+
+      row.innerHTML = `
+        <td>${title}</td>
+        <td>${author}</td>
+        <td>${isbn}</td>
+        <td>
+          <button class="edit-btn" onclick="editRow(this)"><i class="fas fa-pen"></i></button>
+          <button class="delete-btn" onclick="deleteRow(this)"><i class="fas fa-trash"></i></button>
+        </td>
+      `;
+
+      document.getElementById('title').value = '';
+      document.getElementById('author').value = '';
+      document.getElementById('isbn').value = '';
+    }
+
+    function deleteRow(button) {
+      button.closest('tr').remove();
+    }
+
+    function editRow(button) {
+      const row = button.closest('tr');
+      const cells = row.querySelectorAll('td');
+
+      for (let i = 0; i < 3; i++) {
+        const text = cells[i].textContent;
+        cells[i].innerHTML = `<input type="text" value="${text}" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #ccc;">`;
+      }
+
+      cells[3].innerHTML = `
+        <button class="save-btn" onclick="saveRow(this)"><i class="fas fa-check"></i></button>
+        <button class="delete-btn" onclick="deleteRow(this)"><i class="fas fa-trash"></i></button>
+      `;
+    }
+
+    function saveRow(button) {
+      const row = button.closest('tr');
+      const inputs = row.querySelectorAll('input');
+
+      for (let i = 0; i < 3; i++) {
+        const value = inputs[i].value.trim();
+        row.cells[i].innerHTML = value;
+      }
+
+      row.cells[3].innerHTML = `
+        <button class="edit-btn" onclick="editRow(this)"><i class="fas fa-pen"></i></button>
+        <button class="delete-btn" onclick="deleteRow(this)"><i class="fas fa-trash"></i></button>
+      `;
+    }
+
+    document.getElementById('export-btn').addEventListener('click', () => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.setFontSize(18);
+      doc.text('Daftar Buku', 14, 20);
+      doc.setFontSize(12);
+
+      const rows = [];
+      document.querySelectorAll('#book-list tr').forEach(row => {
+        const cols = row.querySelectorAll('td');
+        rows.push([
+          cols[0].textContent,
+          cols[1].textContent,
+          cols[2].textContent
+        ]);
+      });
+
+      doc.autoTable({
+        startY: 30,
+        head: [['Judul', 'Penulis', 'ISBN']],
+        body: rows,
+        theme: 'striped',
+        headStyles: { fillColor: [0, 180, 216] },
+        styles: { fontSize: 11, cellPadding: 3 },
+        alternateRowStyles: { fillColor: [240, 250, 255] }
+      });
+
+      doc.save('daftar-buku.pdf');
+    });
+  </script>
+
+</body>
+</html>
